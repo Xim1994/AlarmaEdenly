@@ -1,5 +1,7 @@
 # AlarmaEdenly
 
+Este proyecto implementa una alarma inteligente con capacidad de activación remota, watchdog y actualizaciones OTA.
+
 Duración de batería: diría un target mínimo aceptable sería 1 mes entre recargas.
 
 Cuándo sonar:
@@ -30,3 +32,8 @@ o USB-c 5V, para que sea fácil reutilizar otros cargadores y unificar con soluc
 o pilas recargables de 1,2V (Ni-CD) o de 1,5V (Litio) (tal vez sea la opción más sencilla para arrancar),
 
 o un cargador específico que no sea difícil de comprar recambios.
+
+## Instalación
+1. Clona el repositorio.
+2. Instala las dependencias: `pip install -r requirements.txt`.
+3. Ejecuta el programa: `python src/main.py`.
