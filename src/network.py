@@ -1,39 +1,70 @@
+import subprocess
 import logging
-import time
-from config import settings
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-try:
-    import network
-except ImportError:
-    logger.warning("El módulo 'network' no está disponible. Usando un mock para pruebas.")
-    from unittest import mock
-    network = mock.Mock()
-
 class NetworkManager:
-    def __init__(self) -> None:
-        self.ssid: str = settings.WIFI_SSID
-        self.password: str = settings.WIFI_PASSWORD
-        self.wlan = network.WLAN(network.STA_IF)
+    def __init__(self, ssid: str, password: str) -> None:
+        self.ssid = ssid
+        self.password = password
 
-    def connect(self) -> None:
-        self.wlan.active(True)
-        self.wlan.connect(self.ssid, self.password)
-        logger.info(f'Conectando a Wi-Fi SSID: {self.ssid}')
-        attempt: int = 0
-        while not self.wlan.isconnected():
-            attempt += 1
-            logger.debug(f'Intento {attempt}: Conexión en progreso...')
-            time.sleep(1)
-            if attempt >= 10:
-                logger.error('No se pudo conectar a Wi-Fi después de múltiples intentos.')
-                raise ConnectionError('No se pudo conectar a Wi-Fi.')
-        logger.info(f'Conectado a Wi-Fi: {self.wlan.ifconfig()}')
+    def connect(self) -> bool:
+        """
+        Connect to the specified Wi-Fi network using nmcli.
+        Returns True if the connection is successful, False otherwise.
+        """
+        try:
+            current_ssid = self.get_current_ssid()
+            if current_ssid == self.ssid:
+                logger.info(f"Already connected to Wi-Fi SSID: {self.ssid}")
+                return True
 
+            subprocess.run(['nmcli', 'device', 'disconnect', 'wlan0'], check=True)
+            logger.info("Disconnected from any existing Wi-Fi connection.")
 
-    def disconnect(self):
-        if self.wlan.isconnected():
-            self.wlan.disconnect()
-            self.wlan.active(False)
-            logger.info(f'Wi-Fi Desconectado')
+            result = subprocess.run(
+                ['nmcli', 'device', 'wifi', 'connect', self.ssid, 'password', self.password],
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            logger.info(f"Connected to Wi-Fi SSID: {self.ssid}")
+            return True
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to connect to {self.ssid}: {e.stderr.strip()}")
+            return False
+
+    def disconnect(self) -> bool:
+        """
+        Disconnect from the current Wi-Fi network.
+        Returns True if disconnection is successful, False otherwise.
+        """
+        try:
+            subprocess.run(['nmcli', 'device', 'disconnect', 'wlan0'], check=True)
+            logger.info("Wi-Fi disconnected successfully.")
+            return True
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to disconnect Wi-Fi: {e.stderr.strip()}")
+            return False
+
+    def get_current_ssid(self) -> Optional[str]:
+        """
+        Retrieve the SSID of the currently connected Wi-Fi network.
+        Returns the SSID as a string if connected, or None if not connected.
+        """
+        try:
+            result = subprocess.run(
+                ['nmcli', '-t', '-f', 'active,ssid', 'dev', 'wifi'],
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            for line in result.stdout.splitlines():
+                active, ssid = line.split(':')
+                if active == 'yes':
+                    return ssid
+            return None
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to retrieve current SSID: {e.stderr.strip()}")
+            return None

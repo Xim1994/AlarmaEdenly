@@ -1,28 +1,44 @@
 import threading
 import time
-from src.alarm import Alarm
-from src.network import NetworkManager
-from src.watchdog import Watchdog
-from src.ota_update import OTAUpdater
-from config import settings
 import logging
-
-logger = logging.getLogger(__name__)
+from alarm import Alarm
+from network import NetworkManager
+from watchdog import Watchdog
+from server import TCPServer
+from config import settings
+from config_logging import setup_logging
 
 def main():
-    alarm = Alarm(pin=15)
-    network = NetworkManager()
-    watchdog = Watchdog(alarm=alarm)
-    ota_updater = OTAUpdater(repo_url=settings.OTA_REPO_URL)
+    setup_logging()
+    logger = logging.getLogger(__name__)
 
     try:
+        # Initialize components
+        alarm = Alarm(pin=settings.ALARM_PIN)
+        network = NetworkManager(settings.WIFI_SSID, settings.WIFI_PASSWORD)
+        watchdog = Watchdog(alarm=alarm)
+        tcp_server = TCPServer(alarm=alarm)
+
+        # Connect to the network
         network.connect()
-        threading.Thread(target=watchdog.check_server).start()
-        # Lógica adicional para el servidor TCP y manejo de comandos
+
+        # Start watchdog and TCP server in separate threads
+        threading.Thread(target=watchdog.check_server, daemon=True).start()
+        threading.Thread(target=tcp_server.start, daemon=True).start()
+
+        logger.info("System initialized and running.")
+
+        # Keep the main thread alive
+        while True:
+            time.sleep(3600)
+
     except Exception as e:
-        logger.error(f"Error: {e}")
+        logger.error(f"An error occurred in the main application: {e}")
     finally:
+        # Clean up resources
         alarm.cleanup()
+        tcp_server.stop()
+        logger.info("System shutdown complete.")
 
 if __name__ == '__main__':
     main()

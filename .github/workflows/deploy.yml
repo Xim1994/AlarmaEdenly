@@ -1,0 +1,56 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: Deploy to Raspberry Pi Zero
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        
+      - name: Run tests
+        run: |
+          pytest
+
+      - name: Create logs directory
+        run: |
+          sshpass -p "${{ secrets.PI_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.PI_USER }}@${{ secrets.PI_HOST }} 'mkdir -p ~/app/logs'
+
+      - name: Deploy to Raspberry Pi
+        env:
+          PI_USER: ${{ secrets.PI_USER }}
+          PI_HOST: ${{ secrets.PI_HOST }}
+          PI_PASSWORD: ${{ secrets.PI_PASSWORD }}
+        run: |
+          sshpass -p "$PI_PASSWORD" scp -r * $PI_USER@$PI_HOST:~/app/
+          sshpass -p "$PI_PASSWORD" ssh $PI_USER@$PI_HOST 'sudo systemctl restart alarm_service'
