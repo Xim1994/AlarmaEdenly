@@ -1,30 +1,68 @@
-import unittest
-from unittest.mock import patch, MagicMock
+import pytest
+from unittest import mock
 from src.watchdog import Watchdog
 from src.alarm import Alarm
 
-class TestWatchdog(unittest.TestCase):
-    @patch('src.watchdog.socket.create_connection')
-    def test_check_server_success(self, mock_create_connection):
-        mock_socket = MagicMock()
-        mock_socket.recv.return_value = b'PONG'
-        mock_create_connection.return_value.__enter__.return_value = mock_socket
+@pytest.fixture
+def mock_alarm():
+    """Creates a mock for the Alarm class."""
+    return mock.Mock(spec=Alarm)
 
-        alarm = MagicMock(spec=Alarm)
-        watchdog = Watchdog(alarm=alarm)
-        watchdog.check_server()
+@pytest.fixture
+def watchdog(mock_alarm):
+    """Creates an instance of Watchdog with the mock Alarm."""
+    return Watchdog(alarm=mock_alarm)
 
-        alarm.on.assert_not_called()
+@mock.patch('src.watchdog.socket.create_connection', side_effect=OSError("Server unreachable"))
+@mock.patch('src.watchdog.time.sleep', return_value=None)
+def test_server_unreachable(mock_sleep, mock_create_connection, watchdog, mock_alarm):
+    """
+    Simulates an unreachable server and verifies that the alarm is activated.
+    """
+    def stop_after_one_iteration(*args, **kwargs):
+        """Stops the watchdog after one iteration."""
+        watchdog.running = False
 
-    @patch('src.watchdog.socket.create_connection')
-    def test_check_server_failure(self, mock_create_connection):
-        mock_create_connection.side_effect = Exception("Connection failed")
+    mock_sleep.side_effect = stop_after_one_iteration
 
-        alarm = MagicMock(spec=Alarm)
-        watchdog = Watchdog(alarm=alarm)
-        watchdog.check_server()
+    watchdog.check_server()
 
-        alarm.on.assert_called_once()
+    mock_alarm.on.assert_called_once()
 
-if __name__ == '__main__':
-    unittest.main()
+@mock.patch('src.watchdog.socket.create_connection')
+@mock.patch('src.watchdog.time.sleep', return_value=None)
+def test_incorrect_server_response(mock_sleep, mock_create_connection, watchdog, mock_alarm):
+    """
+    Simulates an incorrect server response and verifies that the alarm is activated.
+    """
+    mock_socket = mock.Mock()
+    mock_socket.recv.return_value = b'INVALID'
+    mock_create_connection.return_value.__enter__.return_value = mock_socket
+
+    def stop_after_one_iteration(*args, **kwargs):
+        """Stops the watchdog after one iteration."""
+        watchdog.running = False
+
+    mock_sleep.side_effect = stop_after_one_iteration
+
+    watchdog.check_server()
+    mock_alarm.on.assert_called_once()
+
+@mock.patch('src.watchdog.socket.create_connection')
+@mock.patch('src.watchdog.time.sleep', return_value=None)
+def test_correct_server_response(mock_sleep, mock_create_connection, watchdog, mock_alarm):
+    """
+    Simulates a correct server response and verifies that the alarm is not activated.
+    """
+    mock_socket = mock.Mock()
+    mock_socket.recv.return_value = b'PONG'
+    mock_create_connection.return_value.__enter__.return_value = mock_socket
+
+    def stop_after_one_iteration(*args, **kwargs):
+        """Stops the watchdog after one iteration."""
+        watchdog.running = False
+
+    mock_sleep.side_effect = stop_after_one_iteration
+
+    watchdog.check_server()
+    mock_alarm.on.assert_not_called()

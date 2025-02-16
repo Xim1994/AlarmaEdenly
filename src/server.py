@@ -65,24 +65,31 @@ class TCPServer:
             client_address (tuple): The address of the connected client.
         """
         try:
-            data: str = client_socket.recv(1024).decode().strip()
-            if data == self.auth_token:
+            auth_data = client_socket.recv(1024).decode().strip()
+            if auth_data == self.auth_token:
                 client_socket.send(b"AUTH_SUCCESS\n")
-                command: str = client_socket.recv(1024).decode().strip().upper()
+                logger.info(f"Client {client_address} authenticated successfully.")
+            else:
+                client_socket.send(b"AUTH_FAILURE\n")
+                logger.warning(f"Client {client_address} failed authentication.")
+                return
+
+            while True:
+                command_data = client_socket.recv(1024).decode().strip()
+                if not command_data:
+                    break
+                command = command_data.upper()
                 if command == 'ACTIVATE':
                     self.alarm.on()
                     client_socket.send(b"Alarm activated\n")
-                    logger.info("Received 'ACTIVATE' command: Alarm activated")
+                    logger.info(f"Client {client_address} sent 'ACTIVATE' command.")
                 elif command == 'DEACTIVATE':
                     self.alarm.off()
                     client_socket.send(b"Alarm deactivated\n")
-                    logger.info("Received 'DEACTIVATE' command: Alarm deactivated")
+                    logger.info(f"Client {client_address} sent 'DEACTIVATE' command.")
                 else:
                     client_socket.send(b"Unknown command\n")
-                    logger.warning(f"Unknown command received: {command}")
-            else:
-                client_socket.send(b"AUTH_FAILURE\n")
-                logger.warning("Authentication attempt failed")
+                    logger.warning(f"Client {client_address} sent unknown command: {command}")
         except Exception as e:
             logger.error(f"Error handling client {client_address}: {e}")
         finally:

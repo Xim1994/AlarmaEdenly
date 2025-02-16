@@ -1,35 +1,69 @@
-import unittest
-from unittest.mock import patch, MagicMock
+import pytest
+import socket
+import threading
+from unittest import mock
 from src.server import TCPServer
 from src.alarm import Alarm
+from config import settings
 
-class TestTCPServer(unittest.TestCase):
-    @patch('src.server.socket.socket')
-    def test_handle_client_auth_success_activate(self, mock_socket):
-        mock_client_socket = MagicMock()
-        mock_client_socket.recv.side_effect = [b'valid_token\n', b'ACTIVATE\n']
-        mock_socket.return_value.accept.return_value = (mock_client_socket, ('127.0.0.1', 12345))
+@pytest.fixture
+def mock_alarm():
+    """Fixture to create a mock Alarm instance."""
+    return mock.create_autospec(Alarm)
 
-        alarm = MagicMock(spec=Alarm)
-        server = TCPServer(alarm=alarm)
-        server.handle_client(mock_client_socket)
+@pytest.fixture
+def tcp_server(mock_alarm):
+    """Fixture to initialize and start the TCPServer."""
+    server = TCPServer(alarm=mock_alarm)
+    server_thread = threading.Thread(target=server.start)
+    server_thread.daemon = True
+    server_thread.start()
+    yield server
+    server.stop()
+    server_thread.join()
 
-        mock_client_socket.send.assert_any_call(b"AUTH_SUCCESS\n")
-        mock_client_socket.send.assert_any_call(b"Alarm activated\n")
-        alarm.on.assert_called_once()
+def test_successful_authentication_and_activate_command(tcp_server, mock_alarm):
+    """Test successful authentication followed by ACTIVATE command."""
+    with socket.create_connection((settings.ALARM_IP, settings.ALARM_PORT)) as sock:
+        sock.sendall(settings.AUTH_TOKEN.encode() + b'\n')
+        response = sock.recv(1024).decode().strip()
+        assert response == "AUTH_SUCCESS"
 
-    @patch('src.server.socket.socket')
-    def test_handle_client_auth_failure(self, mock_socket):
-        mock_client_socket = MagicMock()
-        mock_client_socket.recv.return_value = b'invalid_token\n'
-        mock_socket.return_value.accept.return_value = (mock_client_socket, ('127.0.0.1', 12345))
+        sock.sendall("ACTIVATE".encode() + b'\n')
+        response = sock.recv(1024).decode().strip()    
+        assert response == "Alarm activated"
+        mock_alarm.on.assert_called_once()
 
-        alarm = MagicMock(spec=Alarm)
-        server = TCPServer(alarm=alarm)
-        server.handle_client(mock_client_socket)
+def test_successful_authentication_and_deactivate_command(tcp_server, mock_alarm):
+    """Test successful authentication followed by DEACTIVATE command."""
+    with socket.create_connection((settings.ALARM_IP, settings.ALARM_PORT)) as sock:
+        sock.sendall(settings.AUTH_TOKEN.encode() + b'\n')
+        response = sock.recv(1024).decode().strip()
+        assert response == "AUTH_SUCCESS"
 
-        mock_client_socket.send.assert_called_with(b"AUTH_FAILURE\n")
-        alarm.on.assert_not_called()
+        sock.sendall("DEACTIVATE".encode() + b'\n')
+        response = sock.recv(1024).decode().strip()    
+        assert response == "Alarm deactivated"
+        mock_alarm.off.assert_called_once()
 
-if __name__ == '__main__':
-    unittest.main()
+def test_failed_authentication(tcp_server, mock_alarm):
+    """Test failed authentication with incorrect token."""
+    with socket.create_connection((settings.ALARM_IP, settings.ALARM_PORT)) as sock:
+        sock.sendall("wrong_token".encode() + b'\n')
+        response = sock.recv(1024).decode().strip()
+        assert response == "AUTH_FAILURE"
+        mock_alarm.on.assert_not_called()
+        mock_alarm.off.assert_not_called()
+
+def test_unknown_command_after_authentication(tcp_server, mock_alarm):
+    """Test handling of unknown command after successful authentication."""
+    with socket.create_connection((settings.ALARM_IP, settings.ALARM_PORT)) as sock:
+        sock.sendall(settings.AUTH_TOKEN.encode() + b'\n')
+        response = sock.recv(1024).decode().strip()
+        assert response == "AUTH_SUCCESS"
+
+        sock.sendall("UNKNOWN_COMMAND".encode() + b'\n')
+        response = sock.recv(1024).decode().strip() 
+        assert response == "Unknown command"
+        mock_alarm.on.assert_not_called()
+        mock_alarm.off.assert_not_called()

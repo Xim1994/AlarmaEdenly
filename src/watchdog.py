@@ -23,6 +23,7 @@ class Watchdog:
         self.server_ip: str = settings.SERVER_IP
         self.server_port: int = settings.SERVER_PORT
         self.alarm: Alarm = alarm
+        self.running = True
 
     def check_server(self) -> None:
         """
@@ -30,7 +31,7 @@ class Watchdog:
         Sends a 'PING' message and expects a 'PONG' response. If the response is incorrect
         or a connection error occurs, the alarm is activated.
         """
-        while True:
+        while self.running:
             try:
                 with socket.create_connection((self.server_ip, self.server_port), timeout=15) as sock:
                     sock.sendall(b'PING')

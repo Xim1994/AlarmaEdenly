@@ -11,11 +11,12 @@ SERVER_PORT: Final[int] = 80
 # Alarm
 ALARM_PIN: Final[int] = 15
 ALARM_IP: Final[str] = '127.0.0.1'
+ALARM_PORT: Final[int] = 12345
 
 # TCP Server
 TCP_HOST: Final[str] = '0.0.0.0'
 TCP_PORT: Final[int] = 12345
-AUTH_TOKEN: Final[str] = 'tu_token_seguro'  # Token para autenticación
+AUTH_TOKEN: Final[str] = 'your_secure_token'  # Token para autenticación
 
 # Logging
 LOG_FILE: Final[str] = '../logs/app.log'

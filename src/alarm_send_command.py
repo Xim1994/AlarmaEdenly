@@ -7,7 +7,7 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 server_ip = settings.ALARM_IP
-server_port = settings.TCP_PORT
+server_port = settings.ALARM_PORT
 auth_token = settings.AUTH_TOKEN
 
 def send_command(command: str) -> None:
