@@ -154,7 +154,7 @@ To test the functionality:
 1. **Unit Tests**: The project includes unit tests to verify the core functionalities. Run the tests using:
 
    ```bash
-   pytest
+   pytest tests
    ```
 
 2. **Integration Tests**: Simulate server unavailability by stopping the server process and observing the watchdog's behavior. The alarm should activate upon detecting a loss of connection.
