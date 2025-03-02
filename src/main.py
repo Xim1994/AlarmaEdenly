@@ -30,7 +30,9 @@ def main():
 
         # Keep the main thread alive
         while True:
-            time.sleep(3600)
+            sleep_duration = 3600
+            logger.info(f"System entering sleep mode for {sleep_duration} seconds.")
+            time.sleep(sleep_duration)
 
     except Exception as e:
         logger.error(f"An error occurred in the main application: {e}")

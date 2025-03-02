@@ -1,0 +1,13 @@
+[Unit]
+Description=Alarm Service
+After=network.target
+
+[Service]
+Type=simple
+User=rpi
+WorkingDirectory=/opt/AlarmaEdenly/
+ExecStart=/usr/bin/env python3 /opt/AlarmaEdenly/main.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

@@ -161,13 +161,13 @@ To test the functionality:
 
 ## Power Consumption Optimization
 
-To achieve a minimum battery life of one month between charges, consider the following optimizations:
+To achieve a minimum battery life of one month between charges, we have implemented a script power_optimization.sh to optimize power consumption:
 
-- **Disable Unnecessary Components**: Turn off HDMI, onboard LEDs, and unused USB peripherals to reduce power consumption.
+- **Disable Unnecessary Components**: Turns off HDMI, Bluetooth, onboard LEDs, and unused USB peripherals to reduce power consumption.
 
-- **CPU Core Management**: Limit the number of active CPU cores if full processing power is not required. This can significantly reduce energy usage.
+- **CPU Core Management**: Limit the number of active CPU cores to one if full processing power is not required. This can significantly reduce energy usage. Also, reducing the CPU's clock speed decreases power usage, which is beneficial for applications that don't require maximum processing power.
 
-- **Sleep Modes**: Implement sleep modes during periods of inactivity to conserve battery life.
+- **Sleep Modes**: Introducing sleep modes in the python code during periods of inactivity to substantially lower energy consumption.
 
 For detailed guidance on power optimization techniques, refer to [Optimizing Raspberry Pi Power Consumption](https://blues.com/blog/tips-tricks-optimizing-raspberry-pi-power/).
 
