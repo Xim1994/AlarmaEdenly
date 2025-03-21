@@ -33,6 +33,7 @@ class Watchdog:
         """
         while self.running:
             try:
+                logger.info(f'Checking connection to {self.server_ip}:{self.server_port}')
                 with socket.create_connection((self.server_ip, self.server_port), timeout=15) as sock:
                     sock.sendall(b'PING')
                     response: bytes = sock.recv(1024)
