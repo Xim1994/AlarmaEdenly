@@ -105,7 +105,7 @@ Configure the project settings as needed:
 
 To start the server and client components:
 
-1. **Start the Server**:
+1. **From your Server Machine Start the Server**:
 
    ```bash
    python host.py
@@ -171,6 +171,26 @@ To achieve a minimum battery life of one month between charges, we have implemen
 
 For detailed guidance on power optimization techniques, refer to [Optimizing Raspberry Pi Power Consumption](https://blues.com/blog/tips-tricks-optimizing-raspberry-pi-power/).
 
+## Running the Alarm Control System as a Service
+
+To ensure the Alarm Control System starts automatically upon boot, a `systemd` service file named `alarm.service` is included in this repository. This service file allows the `main.py` script to run as a background service on your Raspberry Pi.
+
+**Setting Up the `alarm.service`:**
+
+1. **Copy the Service File:**
+   Place the `alarm.service` file into the `/etc/systemd/system/` directory:
+
+   ```bash
+   sudo cp alarm.service /etc/systemd/system/
+
+   ```bash
+   sudo cp alarm.service /etc/systemd/system/
+
+   ```bash
+   sudo cp alarm.service /etc/systemd/system/
+
 ## Deployment
 
 The project includes a `deploy.yml` 
+
+

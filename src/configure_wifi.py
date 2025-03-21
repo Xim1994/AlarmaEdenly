@@ -1,7 +1,7 @@
 import os
 import logging
 from pathlib import Path
-from config.settings import WIFI_SSID, WIFI_PASSWORD, LOG_FILE, LOG_LEVEL
+from alarm_config.settings import WIFI_SSID, WIFI_PASSWORD, LOG_FILE, LOG_LEVEL
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,7 @@
 import socket
 import logging
 from config_logging import setup_logging
-from config import settings
+from alarm_config import settings
 
 setup_logging()
 logger = logging.getLogger(__name__)

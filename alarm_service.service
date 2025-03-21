@@ -1,13 +1,28 @@
 [Unit]
-Description=Alarm Service
+Description=Alarm Control System Service
 After=network.target
 
 [Service]
 Type=simple
-User=rpi
-WorkingDirectory=/opt/AlarmaEdenly/
-ExecStart=/usr/bin/env python3 /opt/AlarmaEdenly/main.py
+User=pi
+
+# Set the working directory (path to your project)
+WorkingDirectory=/home/pi/Documents/AlarmaEdenly
+
+# Use the Python executable from your virtual environment
+ExecStart=/home/pi/Documents/AlarmaEdenly/venv/bin/python src/host.py
+
+# Environment variables (optional, if needed)
+Environment="PYTHONPATH=/home/pi/Documents/AlarmaEdenly"
+
+# Restart on failure
 Restart=on-failure
+RestartSec=5s
+
+# Logging (optional)
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=alarm_service
 
 [Install]
 WantedBy=multi-user.target

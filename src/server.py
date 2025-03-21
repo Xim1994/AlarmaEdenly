@@ -2,7 +2,7 @@ import socket
 import threading
 import logging
 from src.alarm import Alarm
-from config import settings
+from alarm_config import settings
 
 logger = logging.getLogger(__name__)
 

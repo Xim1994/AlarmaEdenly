@@ -19,7 +19,7 @@ TCP_PORT: Final[int] = 12345
 AUTH_TOKEN: Final[str] = 'your_secure_token'  # Token para autenticación
 
 # Logging
-LOG_FILE: Final[str] = '../logs/app.log'
+LOG_FILE: Final[str] = 'logs/app.log'
 LOG_LEVEL: Final[str] = 'INFO'
 
 # Watchdog

@@ -4,7 +4,7 @@ import threading
 from unittest import mock
 from src.server import TCPServer
 from src.alarm import Alarm
-from config import settings
+from alarm_config import settings
 
 @pytest.fixture
 def mock_alarm():

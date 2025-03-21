@@ -5,7 +5,7 @@ from alarm import Alarm
 from network import NetworkManager
 from watchdog import Watchdog
 from server import TCPServer
-from config import settings
+from alarm_config import settings
 from config_logging import setup_logging
 
 def main():
