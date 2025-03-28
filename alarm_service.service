@@ -10,7 +10,7 @@ User=pi
 WorkingDirectory=/home/pi/Documents/AlarmaEdenly
 
 # Use the Python executable from your virtual environment
-ExecStart=/home/pi/Documents/AlarmaEdenly/venv/bin/python src/host.py
+ExecStart=/home/pi/Documents/AlarmaEdenly/venv/bin/python src/main.py
 
 # Environment variables (optional, if needed)
 Environment="PYTHONPATH=/home/pi/Documents/AlarmaEdenly"

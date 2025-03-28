@@ -1,11 +1,12 @@
 import logging
+from alarm_config import settings
 
 logger = logging.getLogger(__name__)
 
 try:
     import RPi.GPIO as GPIO
 except ImportError:
-    logger.warning("RPi.GPIO no está disponible. Usando un mock para pruebas.")
+    logger.warning("RPi.GPIO is not available. Using a mock for testing purposes.")
     from unittest import mock
     GPIO = mock.Mock()
 
@@ -14,16 +15,17 @@ class Alarm:
         self.pin: int = pin
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.pin, GPIO.OUT)
-        logger.info(f'Alarma inicializada en el pin {self.pin}')
+        logger.info(f'Alarm initialized on pin {self.pin}')
 
     def on(self) -> None:
-        GPIO.output(self.pin, GPIO.HIGH)
-        logger.info('Alarma activada')
+        if settings.ALARM_ACTIVATED:
+            GPIO.output(self.pin, GPIO.HIGH)
+        logger.info('Alarm activated')
 
     def off(self) -> None:
         GPIO.output(self.pin, GPIO.LOW)
-        logger.info('Alarma desactivada')
+        logger.info('Alarm deactivated')
 
     def cleanup(self) -> None:
         GPIO.cleanup(self.pin)
-        logger.info(f'GPIO limpiado para el pin {self.pin}')
+        logger.info(f'GPIO cleaned up for pin {self.pin}')

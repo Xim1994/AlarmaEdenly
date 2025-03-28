@@ -2,6 +2,7 @@
 
 The Alarm Control System is a network-based solution designed to remotely manage an alarm system using a Raspberry Pi Zero 2 W. This system offers remote activation and deactivation of the alarm, continuous monitoring of connectivity, and automated updates to ensure optimal performance.
 
+
 ## Features
 
 - **Remote Alarm Activation/Deactivation**: Control the alarm system over a TCP/IP network using predefined commands.
@@ -25,6 +26,15 @@ Ensure the following components are available before setting up the project:
   - Python 3.12: [Download and install Python](https://www.python.org/downloads/)
   - `pip`: Python package installer (usually included with Python)
   - GitHub account for repository management and Actions
+
+
+## Assembly Guidelines
+Mount the Raspberry Pi Zero 2 W inside the IP67 enclosure.
+Connect the alarm module to the GPIO pin defined in settings.py.
+Connect the power source via USB-C (ensure at least 2A supply).
+Add an optional switch or button to GPIO or inline on power.
+Drill custom holes if needed to expose ports or access diagnostics LEDs.
+
 
 ## Installation
 
@@ -59,6 +69,7 @@ Follow these steps to set up the project on your Raspberry Pi Zero 2 W:
    pip install typing_extensions
    ```
 
+
 ## Configuration
 
 Configure the project settings as needed:
@@ -73,16 +84,16 @@ Configure the project settings as needed:
   WIFI_PASSWORD: Final[str] = 'Your_Password'
 
   # Central Server
-  SERVER_IP: Final[str] = '192.168.1.100'  # Replace with your server's IP
-  SERVER_PORT: Final[int] = 8080           # Replace with your server's port
+  SERVER_IP: Final[str] = '192.168.1.100'  # Replace with your alarm's IP
+  SERVER_PORT: Final[int] = 8080           # Replace with your alarm's port
 
   # Alarm
   ALARM_PIN: Final[int] = 15
   ALARM_IP: Final[str] = '192.168.1.101'   # Replace with your alarm's IP
 
   # TCP Server
-  TCP_HOST: Final[str] = '0.0.0.0'
-  TCP_PORT: Final[int] = 12345
+  TCP_HOST: Final[str] = '0.0.0.0'         # Replace with your host IP
+  TCP_PORT: Final[int] = 12345             # Replace with your host port
   AUTH_TOKEN: Final[str] = 'your_secure_token'  # Token for authentication
 
   # Logging
@@ -91,6 +102,9 @@ Configure the project settings as needed:
 
   # Watchdog
   WATCHDOG_INTERVAL: Final[int] = 10  # Interval in seconds
+
+  # Alarm functionality
+  ALARM_ACTIVATED: Final[bool] = True  # If the alarm functionality should be activated (set to False for testing)
   ```
 
 - **Logging Configuration**: Ensure that the logging configuration points to a valid directory on your system. Modify the `LOG_FILE` path in `settings.py` if necessary.
@@ -101,11 +115,12 @@ Configure the project settings as needed:
   mkdir logs
   ```
 
+
 ## Usage
 
 To start the server and client components:
 
-1. **From your Server Machine Start the Server**:
+1. **From your Server Machine, start the Server**:
 
    ```bash
    python host.py
@@ -113,7 +128,7 @@ To start the server and client components:
 
    This will initiate the server, which listens for incoming connections on the specified port.
 
-2. **Run the Watchdog Client & the TCP Server**:
+2. **From your alarm device, run the Watchdog Client & the TCP Server**:
 
    ```bash
    python main.py
@@ -131,21 +146,11 @@ To start the server and client components:
 
    Use your server's IP address, the server's port, and the authentication token defined in your `settings.py`.
 
+
 ## Watchdog Functionality
 
 The watchdog monitors the connection to the central server by sending periodic `PING` messages. If a `PONG` response is not received within the specified interval, the alarm is activated. This ensures that any loss of connectivity triggers the alarm, providing a fail-safe mechanism.
 
-## Over-The-Air (OTA) Updates
-
-Automate the deployment of updates using GitHub Actions:
-
-1. **GitHub Actions Workflow**: A `deploy.yml` file is included in the `.github/workflows/` directory. This workflow automates the deployment process whenever changes are pushed to the repository.
-
-2. **Self-Hosted Runner**: Set up a self-hosted GitHub Actions runner on your Raspberry Pi to execute the deployment workflow. This allows the Raspberry Pi to pull updates directly from the repository.
-
-   - **Setup Instructions**: Follow GitHub's official documentation to configure a self-hosted runner on your Raspberry Pi.
-
-3. **Automated Deployment**: Upon pushing changes to the repository, the GitHub Actions workflow will trigger, and the self-hosted runner on the Raspberry Pi will execute the deployment steps, updating the application automatically.
 
 ## Testing
 
@@ -171,26 +176,24 @@ To achieve a minimum battery life of one month between charges, we have implemen
 
 For detailed guidance on power optimization techniques, refer to [Optimizing Raspberry Pi Power Consumption](https://blues.com/blog/tips-tricks-optimizing-raspberry-pi-power/).
 
+- **Power Optimization Script**: You can run the power_optimization.sh script to lower the power consumption of the device, it includes the following actions:
+
+Bluetooth Disabled: Prevents the Pi from powering and initializing Bluetooth hardware.
+HDMI Disabled: If no screen is needed, the HDMI output is turned off completely.
+LEDs Disabled: Turns off the onboard status LEDs to prevent constant current draw.
+USB Unbound: Disconnects USB hubs not in use (especially useful when running headless).
+CPU Throttled: Reduces maximum clock speed and disables additional CPU cores for energy efficiency.
+
+Note: After running this script, a reboot is required to apply all changes.
+
+- **Lightweight Operating System**: Raspbian Lite OS (32-bit) is the minimal version of the official Raspberry Pi OS, designed without a graphical desktop environment. It provides a command-line interface, making it lightweight and efficient, suitable for headless operations and systems where resources are limited. 
+
+
 ## Running the Alarm Control System as a Service
 
 To ensure the Alarm Control System starts automatically upon boot, a `systemd` service file named `alarm.service` is included in this repository. This service file allows the `main.py` script to run as a background service on your Raspberry Pi.
 
-**Setting Up the `alarm.service`:**
+**Setting Up the `alarm.service`**: Here you can find the instructions on how to set up a script to run when the raspberry pi starts https://learn.sparkfun.com/tutorials/how-to-run-a-raspberry-pi-program-on-startup/all
 
-1. **Copy the Service File:**
-   Place the `alarm.service` file into the `/etc/systemd/system/` directory:
-
-   ```bash
-   sudo cp alarm.service /etc/systemd/system/
-
-   ```bash
-   sudo cp alarm.service /etc/systemd/system/
-
-   ```bash
-   sudo cp alarm.service /etc/systemd/system/
-
-## Deployment
-
-The project includes a `deploy.yml` 
 
 
