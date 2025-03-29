@@ -10,12 +10,10 @@ SERVER_PORT: Final[int] = 80
 
 # Alarm
 ALARM_PIN: Final[int] = 15
-ALARM_IP: Final[str] = '127.0.0.1'
+ALARM_IP: Final[str] = '192.168.1.155'
 ALARM_PORT: Final[int] = 12345
 
 # TCP Server
-TCP_HOST: Final[str] = '0.0.0.0'
-TCP_PORT: Final[int] = 12345
 AUTH_TOKEN: Final[str] = 'your_secure_token'  # Token para autenticación
 
 # Logging
@@ -24,3 +22,6 @@ LOG_LEVEL: Final[str] = 'INFO'
 
 # Watchdog
 WATCHDOG_INTERVAL: Final[int] = 10  # Intervalo de comprobación en segundos
+
+# Alarm functionality
+ALARM_ACTIVATED: Final[bool] = True  # If the alarm functionality should be activated (set to False for testing)

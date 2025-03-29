@@ -21,8 +21,8 @@ class TCPServer:
         Args:
             alarm (Alarm): An instance of the Alarm class to control.
         """
-        self.host: str = settings.TCP_HOST
-        self.port: int = settings.TCP_PORT
+        self.host: str = settings.SERVER_IP
+        self.port: int = settings.SERVER_PORT
         self.auth_token: str = settings.AUTH_TOKEN
         self.alarm: Alarm = alarm
         self.server_socket: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

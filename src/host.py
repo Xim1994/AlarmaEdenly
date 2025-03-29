@@ -5,7 +5,7 @@ from config_logging import setup_logging
 setup_logging()
 logger = logging.getLogger(__name__)
 
-def start_server(host: str = '0.0.0.0', port: int = 80):
+def start_server(host: str = '0.0.0.0', port: int = 12345) -> None:
     """
     Starts a TCP server that listens on the specified host and port.
     Responds with 'PONG' to any 'PING' messages received.
