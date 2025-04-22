@@ -16,15 +16,20 @@ def main():
         # Initialize components
         alarm = Alarm(pin=settings.ALARM_PIN)
         network = NetworkManager(settings.WIFI_SSID, settings.WIFI_PASSWORD)
+        print("A")
         watchdog = Watchdog(alarm=alarm)
+        print("B")
         tcp_server = TCPServer(alarm=alarm)
+        print("F")
 
         # Connect to the network
         network.connect()
 
         # Start watchdog and TCP server in separate threads
         threading.Thread(target=watchdog.check_server, daemon=True).start()
+        print("C")
         threading.Thread(target=tcp_server.start, daemon=True).start()
+        print("D")
 
         logger.info("System initialized and running.")
 
